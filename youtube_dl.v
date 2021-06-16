@@ -33,11 +33,11 @@ pub fn download_audio(url string, dir string) ?string {
 	if !is_valid_url(id) {
 		return none
 	}
-	mut path := yt_download.download_best_audio(id, dir) or { '' }
+	mut path := youtugo.download_audio(id, dir) or { '' }
 	if path != '' {
 		return path
 	}
-	path = youtugo.download_audio(id, dir) or { '' }
+	path = yt_download.download_best_audio(id, dir) or { '' }
 	if path != '' {
 		return path
 	}

@@ -15,3 +15,10 @@ fn test_download_video() {
 	assert exists(path) == true
 	rm(path) or {}
 }
+
+fn test_download_non_ascii() {
+	path := download_audio('https://youtu.be/5zo7BYoaqAA', '.') or { '' }
+	assert path != ''
+	assert exists(path) == true
+	rm(path) or {}
+}

@@ -10,7 +10,7 @@ pub fn download_best_audio(id string, path string) ?string {
 		return none
 	}
 	download_url := parse_best_audio_download_url(info_html_text)  or { return none }
-	return download(id, download_url, path) or { return none }
+	return download(id, download_url, path, '.mp3') or { return none }
 }
 
 pub fn download_video(id string, path string) ?string {
@@ -20,16 +20,29 @@ pub fn download_video(id string, path string) ?string {
 		return none
 	}
 	download_url := parse_video_download_url(info_html_text) or { return none }
-	return download(id, download_url, path) or { return none }
+	return download(id, download_url, path, '.mp4') or { return none }
 }
 
-fn download(id string, download_url string, path string) ?string {
+fn download(id string, download_url string, path string, target string) ?string {
 	html_text := get_text('https://youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=$id')
 	title := parse_video_title(html_text) or { return none }
-	final_path := join_path(path, title+'.mp3')
+	mut final_path := join_path(path, title+target)
 	resp := get(download_url) or { 
 		eprintln('$err')
 		return none 
+	}
+	os.create(final_path) or {
+		mut tmp := ''
+		for i in 0 .. final_path.len {
+			println('${final_path[i]}')
+			if final_path[i] > 127 { tmp = tmp + '?' }
+			else { tmp = tmp + final_path[i].ascii_str() }
+		}
+		final_path = tmp
+		os.create(final_path) or {
+			eprintln('$err')
+			return none
+		}
 	}
 	os.write_file(final_path, resp.text) or {
 		eprintln('$err')
