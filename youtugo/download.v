@@ -30,17 +30,8 @@ fn download(html_text string, path string, target string) ?string {
 		return none 
 	}
 	os.create(final_path) or {
-		mut tmp := ''
-		for i in 0 .. final_path.len {
-			println('${final_path[i]}')
-			if final_path[i] > 127 { tmp = tmp + '?' }
-			else { tmp = tmp + final_path[i].ascii_str() }
-		}
-		final_path = tmp
-		os.create(final_path) or {
-			eprintln('$err')
-			return none
-		}
+		eprintln('$err')
+		return none
 	}
 	os.write_file(final_path, resp.text) or {
 		eprintln('$err')

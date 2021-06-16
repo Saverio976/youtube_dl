@@ -41,7 +41,7 @@ pub fn download_audio(url string, dir string) ?string {
 	if path != '' {
 		return path
 	}
-	eprintln('coukd not download audio of this link')
+	eprintln('could not download audio of this link')
 	return none
 }
 
@@ -58,6 +58,6 @@ pub fn download_video(url string, dir string) ?string {
 	if path != '' {
 		return path
 	}
-	eprintln('coukd not download video of this link')
+	eprintln('could not download video of this link')
 	return none
 }
