@@ -1,43 +1,50 @@
 module yt_download
 
-import os { join_path, write_file }
-import net.http { get_text, get }
+import os { join_path }
+import net.http { get, download_file }
 
-pub fn download_best_audio(id string, path string) ?string {
-	info_html_text := get_text('https://www.yt-download.org/api/button/mp3/$id')
-	if info_html_text == '' {
-		eprintln('non-existent video or bad connection')
-		return none
+// download_best_audio (mp3) with the youtube video <id> in the <dir> directory
+pub fn download_best_audio(id string, dir string) ?string {
+	url := 'https://www.yt-download.org/api/button/mp3/' + id
+	$if debug {
+		println('GET ' + url)
 	}
-	download_url := parse_best_audio_download_url(info_html_text)  or { return none }
-	return download(id, download_url, path, '.mp3') or { return none }
+	r := get(url) or { return err }
+	if r.status_code != 200 {
+		return error('reveived a $r.status_code status code')
+	}
+	download_url := parse_best_audio_download_url(r.text)  or { return err }
+	path := download(id, download_url, dir, '.mp3') or { return err }
+	return path
 }
 
-pub fn download_video(id string, path string) ?string {
-	info_html_text := get_text('https://www.yt-download.org/api/button/videos/$id')
-	if info_html_text == '' {
-		eprintln('non-existent video or bad connection')
-		return none
+// download_video (mp4) with the youtube video <id> in the <dir> directory
+pub fn download_video(id string, dir string) ?string {
+	url := 'https://www.yt-download.org/api/button/videos/' + id
+	$if debug {
+		println('GET ' + url)
 	}
-	download_url := parse_video_download_url(info_html_text) or { return none }
-	return download(id, download_url, path, '.mp4') or { return none }
+	r := get(url) or { return err }
+	if r.status_code != 200 {
+		return error('reveived a $r.status_code status code')
+	}
+	download_url := parse_video_download_url(r.text) or { return err }
+	path := download(id, download_url, dir, '.mp4') or { return err } 
+	return path
 }
 
-fn download(id string, download_url string, path string, target string) ?string {
-	html_text := get_text('https://youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=$id')
-	title := parse_video_title(html_text) or { return none }
-	mut final_path := join_path(path, title+target)
-	resp := get(download_url) or { 
-		eprintln('$err')
-		return none 
+fn download(id string, download_url string, dir string, target string) ?string {
+	url := 'https://youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=' + id
+	$if debug {
+		println('GET ' + url)
 	}
-	os.create(final_path) or {
-		eprintln('$err')
-		return none
+	r := get(url) or { return err }
+	if r.status_code != 200 {
+		return error('reveived a $r.status_code status code')
 	}
-	os.write_file(final_path, resp.text) or {
-		eprintln('$err')
-		return none
-	}
+	title := parse_video_title(r.text) or { return err }
+	mut final_path := join_path(dir, title + target)
+	final_path.replace_each(['\\',' ', '/',' ', ':',' ', '*',' ', '?',' ', '"',' ', '<',' ', '>',' ', '|',' '])
+	download_file(download_url, final_path) or { return err }
 	return final_path
 }
