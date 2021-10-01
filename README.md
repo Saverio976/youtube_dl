@@ -10,7 +10,7 @@ import youtube_dl
 fn main(){
 	url := 'https://youtube.com/watch?v=YykjpeuMNEk'
 	folder := '.'
-	path := download_audio(url, folder) or { return }
+	path := youtube_dl.download_audio(url, folder) or { return }
 	println('the audio is in ${folder}/${path}')
 }
 ```
